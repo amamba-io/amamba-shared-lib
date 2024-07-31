@@ -25,6 +25,12 @@ config format:
             error "Unable to find command 'docker', please update running image by `withContainer`, such as withContainer('base')"
             return
         }
+
+        if (env.PLUGIN_REGISTRY_USER && env.PLUGIN_REGISTRY_PASSWORD) {
+            def registry = getRegistryFromImage(config.docker.image)
+            sh "docker login -u ${env.PLUGIN_REGISTRY_USER} -p ${env.PLUGIN_REGISTRY_PASSWORD} ${registry}"
+        }
+
         docker.image(config.docker.image).inside("$runArgs") {
             if (config.docker.shell) {
                 sh "${config.docker.shell} ${config.docker.script}"
@@ -92,6 +98,17 @@ def validate(Map config) {
         error "docker.script is required"
     }
     return this
+}
+
+def getRegistryFromImage(imageName) {
+    def matcher = imageName =~ /^([^\/]+)\/.*/
+    if (matcher) {
+        def registry = matcher[0][1]
+        if (registry.contains('.')) {
+            return registry
+        }
+    }
+    return null
 }
 
 return this
