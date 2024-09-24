@@ -43,7 +43,7 @@ config format:
 
 def genRunArgs(Map config) {
     def workspace = pwd()
-    runArgs = ""
+    runArgs = "--privileged --network=host"
 
     if (config.docker.entrypoint) {
         runArgs = "--entrypoint=${config.docker.entrypoint} "
