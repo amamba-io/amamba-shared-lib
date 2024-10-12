@@ -18,7 +18,8 @@ config format:
     validate(config)
 
     runArgs = genRunArgs(config)
-
+    path = createOutputDirAndReturnPath()
+    runArgs = runArgs + " -v "+ path +":/tmp:rw "
     script {
         def dockerExists = sh(script: 'which docker', returnStatus: true) == 0
         if (!dockerExists) {
@@ -39,6 +40,16 @@ config format:
             }
         }
     }
+    // all returned data should be placed in this file.
+    output = sh(returnStdout: true, script: "cat ${path}/output")
+    return output
+}
+
+def createOutputDirAndReturnPath() {
+     def randomString = UUID.randomUUID().toString().replaceAll("-", "")[0..7]
+     path = "/tmp/" + randomString
+     sh "mkdir ${path} && touch ${path}/output"
+     return path
 }
 
 def genRunArgs(Map config) {
