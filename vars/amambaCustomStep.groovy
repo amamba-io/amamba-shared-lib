@@ -10,7 +10,6 @@ config format:
     docker: {
         image: "image",
         script: "script",
-        shell: "shell",
         entrypoint: "entrypoint"
     }
 */
@@ -33,11 +32,7 @@ config format:
         }
 
         docker.image(config.docker.image).inside("$runArgs") {
-            if (config.docker.shell) {
-                sh "${config.docker.shell} ${config.docker.script}"
-            } else {
-                sh "${config.docker.script}"
-            }
+            sh "${config.docker.script}"
         }
     }
     // all returned data should be placed in this file.
@@ -54,10 +49,10 @@ def createOutputDirAndReturnPath() {
 
 def genRunArgs(Map config) {
     def workspace = pwd()
-    runArgs = "--privileged --network=host"
+    runArgs = "--privileged --network=host "
 
     if (config.docker.entrypoint) {
-        runArgs = "--entrypoint=${config.docker.entrypoint} "
+        runArgs = runArgs + "--entrypoint=${config.docker.entrypoint} "
     }
 
     //  write args to file as envFile
