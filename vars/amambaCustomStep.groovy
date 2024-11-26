@@ -33,8 +33,13 @@ config format:
         }
 
         docker.image(config.docker.image).inside("$runArgs") {
+            def scriptName = "script_${System.currentTimeMillis()}_${UUID.randomUUID().toString()}"
+            writeFile file: scriptName, text: config.docker.script
+            sh "chmod +x ${scriptName}"
             if (config.docker.shell) {
-                sh "${config.docker.shell} ${config.docker.script}"
+                sh "${config.docker.shell} ${scriptName}"
+            } else if (config.docker.script.trim().startsWith("#!")) {
+                sh "./${scriptName}"
             } else {
                 sh "${config.docker.script}"
             }
@@ -54,10 +59,10 @@ def createOutputDirAndReturnPath() {
 
 def genRunArgs(Map config) {
     def workspace = pwd()
-    runArgs = "--privileged --network=host"
+    runArgs = "--privileged --network=host "
 
     if (config.docker.entrypoint) {
-        runArgs = "--entrypoint=${config.docker.entrypoint} "
+        runArgs = runArgs + "--entrypoint=${config.docker.entrypoint} "
     }
 
     //  write args to file as envFile
